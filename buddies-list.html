@@ -1,0 +1,62 @@
+<polymer-element name="buddies-list">
+  <template>
+
+    <polymer-model id="buddyModel" url="buddies"></polymer-model>
+
+    <polymer-collection id="buddiesCollection" url="buddies"></polymer-collection>
+
+    <h1 id="hello">Hello {{$.buddyModel.fields.name}}</h1>
+    <input id="textName" value="{{$.buddyModel.fields.name}}">
+    <button on-click="{{addModel}}">Add Model to collection (not persisted)</button>
+    <hr>
+    <ul>
+      <template repeat="{{$.buddiesCollection.models}}">
+        <li>{{fields.uid}} {{fields.name}} <input value="{{fields.name}}"></li>
+      </template>
+    </ul>
+    <hr>
+    <button on-click="{{saveAllModels}}">Save All Models</button>
+    <button on-click="{{refreshList}}">Refresh list</button>
+
+  </template>
+  <script>
+    Polymer("buddies-list",{
+
+      loadBuddies : function () {
+        /* load data : GET request */
+        this.$.buddiesCollection.fetch({
+          success : function (data) { console.log("DATA : ", data); },
+          error   : function (error) { console.log("ERROR : ", error); }
+        });
+      },
+
+      ready: function () {
+        this.loadBuddies();
+      },
+
+      addModel : function () {
+        var model = this.$.buddyModel.clone();
+        this.$.buddiesCollection.add(model);
+        this.$.textName.value = "";
+      },
+
+      saveAllModels : function () {
+        this.$.buddiesCollection.models.forEach(function(model){
+          if (model.fields.uid) {
+            model.update({success : function (data) { console.log("updated : ", data); } })
+          } else {
+            model.insert({success : function (data) { console.log("inserted : ", data); } })
+          }
+
+        });
+      },
+
+      refreshList : function () {
+        this.loadBuddies();
+      }
+
+    });
+  </script>
+</polymer-element>
+
+
