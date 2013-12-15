@@ -1,0 +1,109 @@
+<polymer-element name="polymer-model">
+
+  <template>
+    <polymer-ajax id="xhr" handleAs="json" method="" url=""
+                  on-polymer-response="{{onReceive}}"
+                  on-polymer-error="{{onError}}"
+                  on-polymer-complete="{{onComplete}}">
+    </polymer-ajax>
+
+    <polymer-signals on-polymer-signal-tell="{{onTell}}"></polymer-signals>
+    <!-- tell -->
+  </template>
+
+  <script>
+    Polymer("polymer-model",{
+      ready: function(){
+        this.fields = {};
+        this.patch() /* temp */
+        /*
+         https://github.com/Polymer/polymer-ajax/pull/8
+         https://github.com/k33g/polymer-ajax/commit/c8b703594930f67b35e789f80f5f3dc865af8806
+         */
+      },
+
+      created : function() {
+        //console.log("=== created ===")
+      },
+
+      patch : function() {
+        this.$.xhr.xhr.request = function(options) {
+          var xhr = new XMLHttpRequest();
+          var url = options.url;
+          var method = options.method || 'GET';
+          var async = !options.sync;
+          var params = this.toQueryString(options.params);
+          if (params && method == 'GET') {
+            url += (url.indexOf('?') > 0 ? '&' : '?') + params;
+          }
+          xhr.open(method, url, async);
+          if (options.responseType) {
+            xhr.responseType = options.responseType;
+          }
+          this.makeReadyStateHandler(xhr, options.callback);
+          this.setRequestHeaders(xhr, options.headers);
+
+          xhr.send(method == 'POST' || 'PUT' ? (options.body || params) : null);
+          if (!async) {
+            xhr.onreadystatechange(xhr);
+          }
+          return xhr;
+        }
+        //console.log("=== xhr patched ===")
+      },
+
+      defineCallBacks : function(callBacks) {
+        if(callBacks == undefined) callBacks = {};
+        this.callbacks = {
+          success : callBacks.success || function(){},
+          error : callBacks.error|| function(){}
+        };
+      },
+
+      fetch : function(callBacks) {
+        this.defineCallBacks(callBacks);
+        this.$.xhr.method = "GET";
+        this.$.xhr.url = (this.getAttribute("url") == null ? this.url : this.getAttribute("url"))  + "/" +  this.fields.uid;
+        this.$.xhr.go();
+      },
+      insert : function(callBacks) {
+        this.defineCallBacks(callBacks);
+        this.$.xhr.method = "POST";
+        this.$.xhr.url = this.getAttribute("url") == null ? this.url : this.getAttribute("url");
+        this.$.xhr.xhrArgs = {
+          headers: { "Content-Type": "application/json"},
+          body: JSON.stringify(this.fields)
+        };
+        this.$.xhr.go();
+      },
+      save : function(callBacks) {
+        this.defineCallBacks(callBacks);
+        this.$.xhr.method = "PUT";
+        this.$.xhr.url = (this.getAttribute("url") == null ? this.url : this.getAttribute("url"))  + "/" +  this.fields.uid;
+        this.$.xhr.xhrArgs = {
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(this.fields)
+        };
+        this.$.xhr.go();
+      },
+      delete : function(callBacks) {
+        this.defineCallBacks(callBacks);
+        this.$.xhr.method = "DELETE";
+        this.$.xhr.url = (this.getAttribute("url") == null ? this.url : this.getAttribute("url"))  + "/" +  this.fields.uid;
+        this.$.xhr.go();
+      },
+
+      onReceive: function(response, xhr) { /*foo*/
+        for(var m in response.detail.response) { this.fields[m] = response.detail.response[m]; };
+        this.callbacks.success(response.detail.response) //==> response ?
+      },
+      onError: function(error) {
+        this.callbacks.error(error)
+      },
+      onComplete: function(data) { /*foo*/ },
+      onTell : function(e, data, sender) { /*foo*/ }
+    });
+  </script>
+</polymer-element>

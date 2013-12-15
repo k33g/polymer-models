@@ -1,0 +1,58 @@
+<polymer-element name="polymer-collection">
+
+  <template>
+    <polymer-ajax id="xhr" handleAs="json" method="" url=""
+                  on-polymer-response="{{onReceive}}"
+                  on-polymer-error="{{onError}}"
+                  on-polymer-complete="{{onComplete}}">
+    </polymer-ajax>
+
+    <polymer-signals on-polymer-signal-tell="{{onTell}}"></polymer-signals>
+    <!-- tell -->
+  </template>
+
+  <script>
+    Polymer("polymer-collection",{
+      ready: function(){
+        this.models = [];
+      },
+      created : function() {
+      },
+      defineCallBacks : function(callBacks) {
+        if(callBacks == undefined) callBacks = {};
+        this.callbacks = {
+          success : callBacks.success || function(){},
+          error : callBacks.error|| function(){}
+        };
+      },
+      fetch : function(callBacks) {
+        this.defineCallBacks(callBacks);
+        this.$.xhr.method = "GET";
+        this.$.xhr.url = (this.getAttribute("url") == null ? this.url : this.getAttribute("url"));
+        this.$.xhr.go();
+      },
+
+      add : function(model) {},
+      remove : function(model) {},
+      /* etc. ... */
+
+      onReceive: function(response, xhr) {
+        var currentCollection = this;
+        currentCollection.models = [];
+        response.detail.response.forEach(function(model){
+          var polymerModel = document.createElement('polymer-model');
+          for(var m in model) { polymerModel.fields[m] = model[m]; };
+          //polymerModel.$.xhr.url = (currentCollection.getAttribute("url") == null ? currentCollection.url : currentCollection.getAttribute("url"));
+          polymerModel.url = (currentCollection.getAttribute("url") == null ? currentCollection.url : currentCollection.getAttribute("url"));
+          currentCollection.models.push(polymerModel);
+        });
+        this.callbacks.success(currentCollection.models)
+      },
+      onError: function(error) {
+        this.callbacks.error(error)
+      },
+      onComplete: function(data) { /*foo*/ },
+      onTell : function(e, data, sender) { /*foo*/ }
+    });
+  </script>
+</polymer-element>
