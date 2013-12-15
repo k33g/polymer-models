@@ -25,6 +25,17 @@
       created : function() {
         //console.log("=== created ===")
       },
+      //TODO: factory ?
+      getInstance : function(fields) {
+        var polymerModel = document.createElement('polymer-model');
+        if(fields == undefined) fields = {};
+        for(var m in fields) { polymerModel.fields[m] = fields[m]; };
+        polymerModel.url = (this.getAttribute("url") == null ? this.url : this.getAttribute("url"));
+        return polymerModel;
+      },
+      clone : function() {
+        return this.getInstance(JSON.parse(JSON.stringify(this.fields)));
+      },
 
       patch : function() {
         this.$.xhr.xhr.request = function(options) {
@@ -76,7 +87,7 @@
         };
         this.$.xhr.go();
       },
-      save : function(callBacks) {
+      update : function(callBacks) {
         this.defineCallBacks(callBacks);
         this.$.xhr.method = "PUT";
         this.$.xhr.url = (this.getAttribute("url") == null ? this.url : this.getAttribute("url"))  + "/" +  this.fields.uid;
@@ -88,6 +99,7 @@
         };
         this.$.xhr.go();
       },
+      save : function(callBacks) { /* todo */ },
       delete : function(callBacks) {
         this.defineCallBacks(callBacks);
         this.$.xhr.method = "DELETE";

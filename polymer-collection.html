@@ -32,9 +32,23 @@
         this.$.xhr.go();
       },
 
-      add : function(model) {},
+      add : function(polymerModel) { /* add model to the collection but don't save it */
+        var currentCollection = this;
+        currentCollection.models.push(polymerModel);
+        return this;
+      },
       remove : function(model) {},
       /* etc. ... */
+
+      /* get new instance of model */
+      newModel : function(fields) {
+        var polymerModel = document.createElement('polymer-model');
+        if(fields == undefined) fields = {};
+        for(var m in fields) { polymerModel.fields[m] = fields[m]; };
+        polymerModel.url = (this.getAttribute("url") == null ? this.url : this.getAttribute("url"));
+        return polymerModel;
+      },
+
 
       onReceive: function(response, xhr) {
         var currentCollection = this;
