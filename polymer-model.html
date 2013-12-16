@@ -81,6 +81,7 @@
         this.defineCallBacks(callBacks);
         this.$.xhr.method = "POST";
         this.$.xhr.url = this.getAttribute("url") == null ? this.url : this.getAttribute("url");
+        this.fields.uid = "";
         this.$.xhr.xhrArgs = {
           headers: { "Content-Type": "application/json"},
           body: JSON.stringify(this.fields)
